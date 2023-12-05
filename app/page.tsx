@@ -1,14 +1,18 @@
-'use client'
+'use client';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ISO6391 from 'iso-639-1';
+
+interface Language {
+  language: string;
+}
 
 export default function Home() {
   const [inputText, setInputText] = useState('');
   const [translatedText, setTranslatedText] = useState('');
   const [sourceLanguage, setSourceLanguage] = useState('es');
   const [targetLanguage, setTargetLanguage] = useState('en');
-  const [languages, setLanguages] = useState([]);
+  const [languages, setLanguages] = useState<Language[]>([]);
 
   useEffect(() => {
     const fetchLanguages = async () => {
@@ -24,7 +28,7 @@ export default function Home() {
 
       try {
         const response = await axios.request(options);
-        const languageData = response.data.data.languages;
+        const languageData = response.data.data.languages as Language[];
         setLanguages(languageData);
       } catch (error) {
         console.error(error);
@@ -35,7 +39,7 @@ export default function Home() {
   }, []);
 
   // Utility function to get full language name based on language code
-  const getLanguageFullName = (code) => {
+  const getLanguageFullName = (code: string) => {
     const language = languages.find((lang) => lang.language === code);
     const isoLanguageName = ISO6391.getName(code);
 
@@ -89,7 +93,7 @@ export default function Home() {
           </select>
           <textarea
             id="message1"
-            rows="10"
+            rows={10}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -113,7 +117,7 @@ export default function Home() {
           </select>
           <textarea
             id="message2"
-            rows="10"
+            rows={10}
             value={translatedText}
             readOnly
             className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -132,4 +136,3 @@ export default function Home() {
     </main>
   );
 }
-
