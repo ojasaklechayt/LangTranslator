@@ -13,6 +13,7 @@ export default function Home() {
   const [sourceLanguage, setSourceLanguage] = useState('es');
   const [targetLanguage, setTargetLanguage] = useState('en');
   const [languages, setLanguages] = useState<Language[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchLanguages = async () => {
@@ -38,16 +39,15 @@ export default function Home() {
     fetchLanguages();
   }, []);
 
-  // Utility function to get full language name based on language code
   const getLanguageFullName = (code: string) => {
     const language = languages.find((lang) => lang.language === code);
     const isoLanguageName = ISO6391.getName(code);
-
-    // Use ISO6391 name if available, otherwise use the language name from the API
     return isoLanguageName || (language ? language.language : code);
   };
 
   const handleTranslate = async () => {
+    setLoading(true);
+
     const encodedParams = new URLSearchParams();
     encodedParams.set('q', inputText);
     encodedParams.set('source', targetLanguage);
@@ -60,7 +60,7 @@ export default function Home() {
         'content-type': 'application/x-www-form-urlencoded',
         'Accept-Encoding': 'application/gzip',
         'X-RapidAPI-Key': 'db4067a7a6msh4bcdbd5f750e5a9p1d4303jsnc9d565d5521a',
-        'X-RapidAPI-Host': 'google-translate1.p.rapidapi.com'
+        'X-RapidAPI-Host': 'google-translate1.p.rapidapi.com',
       },
       data: encodedParams,
     };
@@ -70,7 +70,18 @@ export default function Home() {
       setTranslatedText(response.data.data.translations[0].translatedText);
     } catch (error) {
       console.error(error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(translatedText);
+  };
+
+  const handleClearText = () => {
+    setInputText('');
+    setTranslatedText('');
   };
 
   return (
@@ -128,9 +139,23 @@ export default function Home() {
       <div className="mt-4">
         <button
           onClick={handleTranslate}
-          className="p-2 bg-blue-500 text-white rounded"
+          className={`p-2 bg-blue-500 text-white rounded ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={loading}
         >
-          Translate
+          {loading ? 'Translating...' : 'Translate'}
+        </button>
+        <button
+          onClick={handleCopyToClipboard}
+          className={`p-2 bg-green-500 text-white rounded ml-2 ${!translatedText ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!translatedText}
+        >
+          Copy to Clipboard
+        </button>
+        <button
+          onClick={handleClearText}
+          className="p-2 bg-gray-500 text-white rounded ml-2"
+        >
+          Clear Text
         </button>
       </div>
     </main>
